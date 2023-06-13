@@ -1,0 +1,291 @@
+[1mdiff --cc .env[m
+[1mindex 922742d,2bf9b74..0000000[m
+mode 100755,100755..100644[m
+[1m--- a/.env[m
+[1m+++ b/.env[m
+[36m@@@ -13,15 -13,15 +13,25 @@@[m [mDB_CONNECTION=mysq[m
+  DB_HOST=localhost[m
+  DB_PORT=3306[m
+  DB_DATABASE=finaldev_zwing[m
+[32m++<<<<<<< Updated upstream[m
+[32m +DB_USERNAME=sudhanshu[m
+[32m +DB_PASSWORD=one2@Three[m
+[32m++=======[m
+[32m+ DB_USERNAME=root[m
+[32m+ DB_PASSWORD=[m
+[32m++>>>>>>> Stashed changes[m
+  [m
+  DB_CONNECTION1=mysql1[m
+  DB_HOST1=localhost[m
+  DB_PORT1=3306[m
+  DB_DATABASE1=finaldev_zwing[m
+[32m++<<<<<<< Updated upstream[m
+[32m +DB_USERNAME1=sudhanshu[m
+[32m +DB_PASSWORD1=one2@Three[m
+[32m++=======[m
+[32m+ DB_USERNAME1=root[m
+[32m+ DB_PASSWORD1=[m
+[32m++>>>>>>> Stashed changes[m
+  [m
+  #DB_CONNECTION2=mongodb[m
+  #DB_HOST2=localhost[m
+[1mdiff --cc app/Http/Controllers/Vmart/PromotionController.php[m
+[1mindex 2d519a6,962bd80..0000000[m
+mode 100755,100644..100644[m
+[1m--- a/app/Http/Controllers/Vmart/PromotionController.php[m
+[1m+++ b/app/Http/Controllers/Vmart/PromotionController.php[m
+[36m@@@ -32,9 -31,11 +32,17 @@@[m [mclass PromotionController extends Contr[m
+  		$qty = $params['qty'];[m
+  		$mapping_store_id = $params['mapping_store_id'];[m
+  		$carts = $params['carts'];[m
+[32m++<<<<<<< Updated upstream[m
+[32m +		$item = $params['item'] = $this->getItemOfferDetails($params);[m
+[32m +		// dd($params);[m
+[32m +		$allPromotions = $this->getAllPromotions($params);[m
+[32m++=======[m
+[32m+ 		//$item = $params['item'] = $this->getItemOfferDetails($params);[m
+[32m+ [m
+[32m+ 		$this->filterAllPromotions($params);[m
+[32m+ [m
+[32m+ 		//$allPromotions = $this->getAllPromotions($params);[m
+[32m++>>>>>>> Stashed changes[m
+  [m
+  	}[m
+  [m
+[36m@@@ -63,7 -63,8 +71,12 @@@[m
+  		$item->DEPARTMENT_CODE = $item->GRPCODE;[m
+  		$item->ARTICLE_CODE = $article->CODE;[m
+  		[m
+[32m++<<<<<<< Updated upstream[m
+[32m +		// dd($item);[m
+[32m++=======[m
+[32m+ [m
+[32m+ 		dd($item);[m
+[32m++>>>>>>> Stashed changes[m
+  		return $item;[m
+  	}[m
+  [m
+[36m@@@ -74,183 -75,55 +87,218 @@@[m
+  	 * @param  Array $params [m
+  	 * @return Array|Object All Offer of paticular items[m
+  	 */[m
+[31m -	public function getAllPromotions($params){[m
+[32m +	public function getAllPromotions($params)[m
+[32m +	{[m
+[32m +		$current_date = date('Y-m-d');[m
+[32m +		date_default_timezone_set('Asia/Kolkata');[m
+[32m +		$assortment_code_list_with_promo = array();[m
+[32m +		$assortment_list_data = array();[m
+[32m +		$promo_list = array();[m
+[32m +		$cloumn_list = array('ppa.PROMO_CODE','ppa.STARTDATE','ppa.ENDDATE','ppa.PRIORITY','pb.ASSORTMENT_CODE', 'pb.ASSORTMENT_NAME','pai.DIVISION_GRPCODE as IDIVISION','pai.SECTION_GRPCODE as ISECTION','pai.DEPARTMENT_GRPCODE as IDEPARTMENT','pai.INVARTICLE_CODE as IARTICLE','pai.ICODE as IICODE','pai.CCODE1 as ICCODE1','pai.CCODE2 as ICCODE2','pai.CCODE3 as ICCODE3','pai.CCODE4 as ICCODE4','pai.CCODE5 as ICCODE5','pai.CCODE6 as ICCODE6','pai.PRICE_RANGE_BASIS as IBASIS','pai.PRICE_RANGE_FROM as IPFROM','pai.PRICE_RANGE_TO as IPTO','pai.STOCKINDATE_FROM as IDATEFROM','pai.STOCKINDATE_TO as IDATETO','pai.QTY as IQTY','pai.CODE as ICODE','pai.DESC1 as IDESC1','pai.DESC2 as IDESC2','pai.DESC3 as IDESC3','pai.DESC4 as IDESC4','pai.DESC5 as IDESC5','pai.DESC6 as IDESC6','pae.DIVISION_GRPCODE as EDIVISION','pae.SECTION_GRPCODE as ESECTION','pae.DEPARTMENT_GRPCODE as EDEPARTMENT','pae.INVARTICLE_CODE as EARTICLE','pae.ICODE as EICODE','pae.CCODE1 as ECCODE1','pae.CCODE2 as ECCODE2','pae.CCODE3 as ECCODE3','pae.CCODE4 as ECCODE4','pae.CCODE5 as ECCODE5','pae.CCODE6 as ECCODE6','pae.PRICE_RANGE_BASIS as EBASIS','pae.PRICE_RANGE_FROM as EPFROM','pae.PRICE_RANGE_TO as EPTO','pae.STOCKINDATE_FROM as EDATEFROM','pae.STOCKINDATE_TO as EDATETO','pae.CODE as ECODE','pae.DESC1 as EDESC1','pae.DESC2 as EDESC2','pae.DESC3 as EDESC3','pae.DESC4 as EDESC4','pae.DESC5 as EDESC5','pae.DESC6 as EDESC6');[m
+[32m +		// Get all promotions of requested store & filter from psite_ptomo_assign table[m
+[32m +		$store_promo_list = DB::table($this->store_db_name.'.psite_promo_assign as ppa')[m
+[32m +				->select($cloumn_list)[m
+[32m +				->join($this->store_db_name.'.promo_buy as pb', 'pb.PROMO_CODE', 'ppa.PROMO_CODE')[m
+[32m +				->join($this->store_db_name.'.promo_assortment_include as pai', 'pai.ASSORTMENT_CODE', 'pb.ASSORTMENT_CODE')[m
+[32m +				->leftJoin($this->store_db_name.'.promo_assortment_exclude as pae', 'pae.ASSORTMENT_CODE', 'pb.ASSORTMENT_CODE')[m
+[32m +				->where('ppa.ADMSITE_CODE', $params['mapping_store_id'])[m
+[32m +				->where('ppa.STATUS', 'A')->get();[m
+[32m +[m
+[32m +		// dd($store_promo_list);[m
+[32m +[m
+[32m +		// Exclude expire promotion & get all assortment code[m
+[32m +		foreach ($store_promo_list as $key => $value) {[m
+[32m +			$startdate = $this->convert_in_indian_date_format($value->STARTDATE);[m
+[32m +			$enddate = $this->convert_in_indian_date_format($value->ENDDATE);[m
+[32m +			if (($current_date >= $startdate) && ($current_date <= $enddate)) {[m
+[32m +				if (!empty($this->promotionDerivation($value, $params['item']))) {[m
+[32m +					$promo_list[] = $this->promotionDerivation($value, $params['item']);;[m
+[32m +				}[m
+[32m +			} else {[m
+[32m +				unset($store_promo_list[$key]);[m
+[32m +			}[m
+[32m +		}[m
+[32m +		// dd($promo_list);[m
+[32m +		// Get all promotion condition[m
+[32m +[m
+[32m +		foreach ($promo_list as $key => $value) {[m
+[32m +			$promo_slab = DB::table($this->store_db_name.'.promo_master as pm')[m
+[32m +				->join($this->store_db_name.'.promo_slab as ps', 'ps.promo_code', 'pm.code')[m
+[32m +				->where('pm.code', $value->PROMO_CODE)[m
+[32m +				->first();[m
+[32m +		}[m
+[32m +[m
+[32m +		dd($promo_slab);[m
+[32m +[m
+[32m +	}[m
+[32m +[m
+[32m +	public function promotionDerivation($params, $item) {[m
+[32m +		// dd($params);[m
+[32m +		$data = array();[m
+[32m +		$return_data = [];[m
+[32m +		$data['inc_division'] = $this->includeMatchCheckNullCheck($item->DIVISION_CODE, $params->IDIVISION);[m
+[32m +		$data['inc_section'] = $this->includeMatchCheckNullCheck($item->SECTION_CODE, $params->ISECTION);[m
+[32m +		$data['inc_department'] = $this->includeMatchCheckNullCheck($item->DEPARTMENT_CODE, $params->IDEPARTMENT);[m
+[32m +		$data['inc_article'] = $this->includeMatchCheckNullCheck($item->ARTICLE_CODE, $params->IARTICLE);[m
+[32m +		$data['inc_icode'] = $this->includeMatchCheckNullCheck($item->ICODE, $params->IICODE);[m
+[32m +		$data['inc_category_1'] = $this->includeMatchCheckNullCheck($item->CCODE1, $params->ICCODE1);[m
+[32m +		$data['inc_category_2'] = $this->includeMatchCheckNullCheck($item->CCODE1, $params->ICCODE2);[m
+[32m +		$data['inc_category_3'] = $this->includeMatchCheckNullCheck($item->CCODE1, $params->ICCODE3);[m
+[32m +		$data['inc_category_4'] = $this->includeMatchCheckNullCheck($item->CCODE1, $params->ICCODE4);[m
+[32m +		$data['inc_category_5'] = $this->includeMatchCheckNullCheck($item->CCODE1, $params->ICCODE5);[m
+[32m +		$data['inc_category_6'] = $this->includeMatchCheckNullCheck($item->CCODE1, $params->ICCODE6);[m
+[32m +		$data['inc_stock_check'] = $this->includeMatchCheckNullOrDateCheck($item->GENERATED, $params);[m
+[32m +		$data['inc_price_range'] = $this->includeMatchCheckNullOrRangerCheck($item->LISTED_MRP, $params);[m
+[32m +		$data['inc_desc_1'] = $this->includeMatchCheckNullCheck($item->DESC1, $params->IDESC1);[m
+[32m +		$data['inc_desc_2'] = $this->includeMatchCheckNullCheck($item->DESC2, $params->IDESC2);[m
+[32m +		$data['inc_desc_3'] = $this->includeMatchCheckNullCheck($item->DESC3, $params->IDESC3);[m
+[32m +		$data['inc_desc_4'] = $this->includeMatchCheckNullCheck($item->DESC4, $params->IDESC4);[m
+[32m +		$data['inc_desc_5'] = $this->includeMatchCheckNullCheck($item->DESC5, $params->IDESC5);[m
+[32m +		$data['inc_desc_6'] = $this->includeMatchCheckNullCheck($item->DESC6, $params->IDESC6);[m
+[32m +		// dd($data);[m
+[32m +		// $data['code'] = $acode.'-'.$code;[m
+[32m +		// $acode = array_push($acode, ['CODE' => $code]);[m
+[32m +		// $return_data = ['ASSORTMENT_CODE' => $acode['ASSORTMENT_CODE'], 'PROMO_CODE' => $acode['PROMO_CODE'], 'CODE' => $code];[m
+[32m +		if (in_array(2, $data)) {[m
+[32m +			return 0;[m
+[32m +		} else {[m
+[32m +			return $params;[m
+[32m +		}[m
+[32m +	}[m
+  [m
+[32m +	public function includeMatchCheckNullCheck($ivalue, $pvalue) {[m
+[32m +		// dd($pvalue);[m
+[32m +		if (!empty($pvalue)) {[m
+[32m +			if ($pvalue == $ivalue) {[m
+[32m +				return 0;[m
+[32m +			} else {[m
+[32m +				return 2;[m
+[32m +			}[m
+[32m +		} else {[m
+[32m +			return 0;[m
+[32m +		}[m
+  	}[m
+  [m
+[32m +	public function includeMatchCheckNullOrDateCheck($ivalue, $pvalue) {[m
+[32m +		// dd($pvalue);[m
+[32m +		if (!empty($pvalue->IDATEFROM) && !empty($pvalue->IDATETO)) {[m
+[32m +			$stockindate = date('Y-m-d', strtotime($ivalue));[m
+[32m +			$stock_from = $this->convert_in_indian_date_format($pvalue->IDATEFROM);[m
+[32m +			$stock_to = $this->convert_in_indian_date_format($pvalue->IDATETO);[m
+[32m +			if (($stockindate >= $stock_from) && ($stockindate <= $stock_to)) {[m
+[32m +				return 1;[m
+[32m +			} else {[m
+[32m +				return 2;[m
+[32m +			}[m
+[32m +		} else {[m
+[32m +			return 0;[m
+[32m +		}[m
+[32m +	}[m
+[32m +[m
+[32m +	public function includeMatchCheckNullOrRangerCheck($ivalue, $pvalue) {[m
+[32m +		if (!empty($pvalue->IPFROM) && !empty($pvalue->IPTO)) {[m
+[32m +			if ($ivalue >= $pvalue->IPFROM && $ivalue <= $pvalue->IPTO) {[m
+[32m +				return 1;[m
+[32m +			} else {[m
+[32m +				return 2;[m
+[32m +			}[m
+[32m +		} else {[m
+[32m +			return 0;[m
+[32m +		}[m
+[32m +	}[m
+[32m +[m
+[32m +	[m
+  	[m
+  	/**[m
+[31m -	 * filtering all offer based on validation such date or status [m
+[32m +	 * This function will calculate All Rule / Promotions[m
+  	 * [m
+[31m -	 * @param  Array $params [m
+[31m -	 * @return Array|Object All Offer of paticular items[m
+  	 */[m
+[31m -	public function filterAllPromotions($params){[m
+[32m +	public function calculatingAllPromotions($params){//INcomplete function need to implement[m
+[32m +[m
+[32m +		$promotions = $params['promotions'];[m
+[32m +        $carts = $params['carts']; [m
+[32m +        $final_data = [];[m
+[32m +        $offer =[];[m
+[32m +        $allOffer= [];[m
+  [m
+[32m+ 		// $this->store_db_name;[m
+[32m+ [m
+[32m+ 		$promo_list   = array(1,2,3,4);[m
+[32m+ 		$scode        = @$params['scode'];[m
+[32m+ [m
+[32m+ 		$promo_m_slab = DB::table($this->store_db_name.'.promo_slab AS pslb')[m
+[32m+ 							->select('pslb.SIMPLE_FACTOR', 'pslb.SLAB_RANGE_FROM', 'pslb.SLAB_RANGE_TO', 'pslb.GET_BENEFIT_CODE', 'pslb.GET_FACTOR', 'pslb.GET_ASSORTMENT_CODE', 'pslb.DISCOUNT_TYPE', 'pslb.DISCOUNT_PRICE_BASIS', 'pslb.SLAB_CODE', 'pmst.NAME', 'pmst.TYPE', 'pmst.BASIS', 'pmst.BUY_FACTOR_TYPE',  'pslb.PROMO_CODE')[m
+[32m+ 							->join($this->store_db_name.'.promo_master AS pmst','pmst.CODE','pslb.PROMO_CODE')[m
+[32m+ 							->whereIn('pslb.PROMO_CODE',$promo_list)[m
+[32m+ 							 [m
+[32m+ 							->orderBy('pslb.SLAB_CODE','DESC')[m
+[32m+ 							->get();[m
+[32m+ 		[m
+[32m+ 		/*$promotionType  = array();[m
+[32m+ 		foreach($promo_m_slab as $fetch){[m
+[32m+ [m
+[32m+ 			$promotionType['NAME']   = $fetch->NAME;[m
+[32m+ 			$promotionType['TYPE']   = $fetch->TYPE;[m
+[32m+  			$promotionType['BASIS']  = $fetch->BASIS;[m
+[32m+  			$promotionType['GET_BENEFIT_CODE']  = $fetch->GET_BENEFIT_CODE;[m
+[32m+ 		}*/[m
+[32m+ [m
+[32m+ 		print_r($promo_m_slab);[m
+[32m+ [m
+[32m+ 		//print_r($promo_m_slab);[m
+[32m+ [m
+[32m+ [m
+[32m+ [m
+[32m+ 							/*//->join('vmart.psite_promo_assign', 'promo_slab.PROMO_CODE', '=', 'psite_promo_assign.PROMO_CODE')[m
+[32m+ 							->join('vmart.promo_master', 'promo_slab.PROMO_CODE', '=', 'promo_master.CODE')[m
+[32m+ 							->where('psite_promo_assign.ADMSITE_CODE', $scode)[m
+[32m+ 							->whereIn('promo_slab.PROMO_CODE', $promo_list)[m
+[32m+ 							->orderBy('psite_promo_assign.PRIORITY', 'desc')[m
+[32m+ 							->orderBy('promo_slab.SLAB_CODE', 'desc')[m
+[32m+ 							->get();*/[m
+  [m
+[32m +        foreach ($promotions as $key => $promotion) {[m
+[32m +        	$params[''] = $promotion;[m
+[32m +        	$offer = $this->calculatingIndividualPromotions($params);[m
+[32m +[m
+[32m +        	$allOffer[] = $offer; [m
+[32m +        }[m
+[32m +[m
+[32m +        //Getting Best offer from All offer based of client condition[m
+[32m +        foreach($allOffer as $offer){[m
+[32m +[m
+[32m +        }[m
+[32m +[m
+[32m +        return $offer;[m
+[32m +[m
+[32m +	}[m
+[32m +[m
+[32m +	/**[m
+[32m +	 * This function will calculate Individual Rule / Promotions[m
+[32m +	 * [m
+[32m +	 */[m
+[32m +	public function calculatingIndividualPromotions($params){//INcomplete function need to implement[m
+[32m +[m
+[32m +		$promotion = $params['promotion'];[m
+[32m +        $carts = $params['carts']; [m
+[32m +        $allSources = $params['all_sources'];//Will contain item of same assortment[m
+[32m +        $cartOfSourceItems = [];//Will contain item of same assortment[m
+[32m +[m
+[32m +[m
+[32m +        //Getting only item from cart which is present in all Sources and splittig by qty[m
+[32m +[m
+[32m +        $total_qty = 0;[m
+[32m +        foreach ($carts as $key => $items) {[m
+[32m +            if(in_array($items['item_id'] , $allSources) ){[m
+[32m +                while($items['qty'] > 0){[m
+[32m +                    $cartOfSourceItems[] = ['item_id' =>$items['item_id'] , 'unit_mrp' => $items['unit_mrp']  ,'qty' => 1 ] ;[m
+[32m +                    $items['qty']--;[m
+[32m +                    $total_qty++;[m
+[32m +                }[m
+[32m +            }[m
+[32m +        }[m
+[32m +[m
+[32m +        [m
+  	}[m
+  [m
+  	[m

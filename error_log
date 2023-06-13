@@ -1,0 +1,1 @@
+[09-Mar-2018 10:35:31 Etc/GMT] PHP Notice:  date_default_timezone_set(): Timezone ID 'UTC+05:30' is invalid in /home/zwinglvc/staging.laraapi/vendor/laravel/lumen-framework/src/Application.php on line 84

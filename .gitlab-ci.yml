@@ -1,0 +1,161 @@
+stages:
+  - test
+  - build
+  - test-test
+  - build-test
+  - test-demo
+  - build-demo
+  - test-staging
+  - build-staging
+  - test-production
+  - build-production
+
+unit_test:
+  stage: test
+  tags: [test-development]
+  script:
+    - cp /var/www/html/dev.api.gozwing.com/public_html/.env.testing .env
+    - composer install
+    - php artisan key:generate
+    #- php artisan migrate
+    #- vendor/bin/phpunit
+  #when: manual
+  only:
+    - development-master
+  
+build_development:
+  stage: build
+  tags: [build-development]
+  script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ~/vendor/bin/envoy run deploy --env=development
+  environment:
+    name: development
+    url: https://dev.api.gozwing.com
+  #when: manual
+  only:
+    - development-master
+
+unit_test_test:
+  stage: test-test
+  tags: [test-test]
+  script:
+    - cp /var/www/html/test.api.gozwing.com/public_html/.env.testing .env
+    - composer install
+    - php artisan key:generate
+    #- php artisan migrate
+    #- vendor/bin/phpunit
+  #when: manual
+  only:
+    - release
+
+build_test:
+  stage: build-test
+  tags: [build-test]
+  script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ~/vendor/bin/envoy run test_deploy --env=test
+  environment:
+    name: demo
+    url: https://test.api.gozwing.com
+  #when: manual
+  only:
+    - release
+
+unit_test_demo:
+  stage: test-demo
+  tags: [test-demo]
+  script:
+    - cp /var/www/html/demo.api.gozwing.com/public_html/.env.testing .env
+    - composer install
+    - php artisan key:generate
+    #- php artisan migrate
+    #- vendor/bin/phpunit
+  when: manual
+  only:
+    - master
+
+build_demo:
+  stage: build-demo
+  tags: [build-demo]
+  script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ~/vendor/bin/envoy run demo_deploy --env=demo
+  environment:
+    name: demo
+    url: https://demo.api.gozwing.com
+  when: manual
+  only:
+    - master
+
+unit_test_staging:
+  stage: test-staging
+  tags: [test-staging]
+  script:
+    - cp /var/www/html/staging.api.gozwing.com/public_html/.env.testing .env
+    - composer install
+    - php artisan key:generate
+    #- php artisan migrate
+    #- vendor/bin/phpunit
+  when: manual
+  only:
+    - master
+
+build_staging:
+  stage: build-staging
+  tags: [build-staging]
+  script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$PRO_STA_SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ~/vendor/bin/envoy run staging_deploy --env=staging
+  environment:
+    name: staging
+    url: https://staging.api.gozwing.com
+  when: manual
+  only:
+    - master
+
+unit_test_production:
+  stage: test-production
+  tags: [test-production]
+  script:
+    - cp /var/www/html/api.gozwing.com/public_html/.env.testing .env
+    - composer install
+    - php artisan key:generate
+    #- php artisan migrate
+    #- vendor/bin/phpunit
+  when: manual
+  only:
+    - master
+
+build_production:
+  stage: build-production
+  tags: [build-production]
+  script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$PRO_STA_SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ~/vendor/bin/envoy run production_deploy --env=production
+  environment:
+    name: production
+    url: https://api.gozwing.com
+  when: manual
+  only:
+    - master
